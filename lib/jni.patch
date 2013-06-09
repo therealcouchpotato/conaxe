@@ -1,0 +1,76 @@
+diff -urN ori/jni/Android.mk jni/Android.mk
+--- ori/jni/Android.mk	2011-03-01 09:36:57.000000000 +0100
++++ jni/Android.mk	2013-04-07 18:03:22.604650447 +0200
+@@ -24,6 +24,7 @@
+ 
+ LOCAL_PRELINK_MODULE := false
+ LOCAL_SHARED_LIBRARIES := libdl  liblog
++LOCAL_LDLIBS := -llog
+ 
+ include $(BUILD_SHARED_LIBRARY)
+ 
+diff -urN ori/jni/config.h jni/config.h
+--- ori/jni/config.h	2011-03-01 09:36:57.000000000 +0100
++++ jni/config.h	2013-04-07 17:42:35.838468065 +0200
+@@ -82,4 +82,4 @@
+ /* Version number of package */
+ #define VERSION "2.2pre1"
+ 
+-#define DEBUG_VERBOSE 1
++#define DEBUG_VERBOSE 0
+diff -urN ori/jni/SerialImp.c jni/SerialImp.c
+--- ori/jni/SerialImp.c	2011-03-01 09:36:57.000000000 +0100
++++ jni/SerialImp.c	2013-04-24 19:46:43.685064035 +0200
+@@ -5139,14 +5139,6 @@
+ ----------------------------------------------------------*/
+ void report_verbose(char *msg)
+ {
+-#ifdef DEBUG_VERBOSE
+-#ifdef DEBUG_MW
+-	mexErrMsgTxt( msg );
+-#else
+-//	fprintf(stderr, msg);
+-	LOGINFO(msg );
+-#endif /* DEBUG_MW */
+-#endif /* DEBUG_VERBOSE */
+ }
+ /*----------------------------------------------------------
+  report_error
+diff -urN ori/jni/SerialImp.h jni/SerialImp.h
+--- ori/jni/SerialImp.h	2011-03-01 09:36:57.000000000 +0100
++++ jni/SerialImp.h	2013-04-24 19:38:44.654688650 +0200
+@@ -339,14 +339,8 @@
+ 
+ #endif /* DEBUG_TIMING */
+ 
+-#define TRACE 
+-#ifdef TRACE
+-#define ENTER(x) report_verbose("entering "x" \n");
+-#define LEAVE(x) report_verbose("leaving "x" \n");
+-#else
+ #define ENTER(x)
+ #define LEAVE(x)
+-#endif /* TRACE */
+ 
+ #endif /* WIN32 */
+ 
+@@ -356,6 +350,8 @@
+ #	define LOCKDIR USER_LOCK_DIRECTORY
+ #endif /* USER_LOCK_DIRECTORY */
+ 
++#define DISABLE_LOCKFILES
++
+ #ifdef DISABLE_LOCKFILES
+ #undef UUCP
+ #undef FHS
+diff -urN ori/jni/termios.c jni/termios.c
+--- ori/jni/termios.c	2011-03-01 09:36:57.000000000 +0100
++++ jni/termios.c	2013-04-24 19:39:29.066908874 +0200
+@@ -1,7 +1,4 @@
+ #ifdef TRENT_IS_HERE
+-#define TRACE
+-#define DEBUG
+-#define DEBUG_MW
+ #ifdef DEBUG_MW
+ 	extern void mexWarMsgTxt( const char * );
+ 	extern void mexPrintf( const char *, ... );

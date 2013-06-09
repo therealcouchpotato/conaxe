@@ -1,0 +1,1 @@
+Put the native RXTX binary for android (librxtxSerial.so) here. It'll be rolled into the APK.

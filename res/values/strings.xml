@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">droidAxe</string>
+    <string name="local_service_started">Emulator running</string>
+    <string name="local_service_label">conAxe</string>
+</resources>
