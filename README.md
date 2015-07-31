@@ -1,4 +1,110 @@
 conaxe
 ======
 
-Season Interface card emulator
+Introduction:
+
+	* What is Conaxe/Nonaxe?
+		They emulate a small subset of the CAS7 card protocol over a serial port.
+	* Conaxe and Nonaxe. What's the difference?
+		Conaxe was the first project. It's a little bit more hackish and probably 
+		less resilient towards non-ideal conditions. The reason for this is that I tested
+		Conaxe with a reliable serial and network connection while Nonaxe had to survive on
+		wifi with signal quality below 10% on an unreliable target device that corrupted 
+		serial comms randomly.		
+		Conaxe is written in Java and depends on the RXTX library. It also has a bolted-together 
+		horrible quality wrapper/launcher/console app for Android which it has also been
+		tested on using the RXTX Android port from http://v-lad.org/projects/gnu.io.android/
+		Nonaxe on the other hand is a small footprint native project meant for low-performance 
+		devices such as routers. (though there is nothing keeping it from running on a PC)
+
+Disclaimer and notes:
+
+	* Emulator is for educational purposes only
+		Make sure you don't violate local laws or your service contract. 
+		I take no responsibility for anything resulting	from the use of this source code.
+	* Emulator does not support pairing
+		Implementing TypeA pairing should be possible at least but I'm not going to do it.
+		TypeB pairing on the other hand has never been reverse engineered
+	* Emulator is released under the GPLv3 license
+		Feel free to modify but make sure you share.
+		http://www.gnu.org/licenses/gpl-3.0.html
+	* Emulator is unsupported
+		Also highly incomplete and generally just a kludge.
+	* Timings are evil (sometimes)
+		CAS7 cards take their time processing ECMs (probably a deliberate delay)
+		When two clients are watching different channels and the ecm timing of those drift
+		and converge then one of those ECMs can take average response time * 2 to process.
+		You don't have very long to respond to an ECM command. Around 1 second is it.
+		If your card processes a request in 500ms+ then it's obvious that one of your clients 
+		will be over limit and skip and that's with only 2 clients.
+		This is probably provider and technology (DVB-S/T/C) dependent but keep it in mind.
+	* Fine tune OSCAM for best results
+		When AU is enabled, the first ECM request may get discarded as OSCAM sends two 
+		EMM_REQUESTs to the new AU-enabled client connection before processing ECMs.
+		This can lead to the first channel open after power-on taking 30+ seconds.
+			Solution: Set the AU user account's session time-out to a large number.
+		EMMs take longer to process than ECMs, hogging precious card time.
+			Solution: Enable EMM caching with a low rewrite count.
+		Etc..
+			Experiment!		
+	* Event-driven/polled
+		People diving into the code may find that the non-android main class is polling
+		while the one used by the Android launcher is event-driven.
+		There are several good reasons for this:
+		It increases the educational value of the project by providing an example of both approaches.
+		Just kidding, I'm simply too lazy to change it. The Event-driven class is preferrable.		
+
+Requirements:
+
+	* Access to an OSCAM or other card server instance that supports the camd35 UDP protocol
+	* Some type of Season interface connected to something you want to run the emu on
+	* _UNPAIRED_ target device (CAM or Set-top-box)
+
+To use:
+	
+	0. Satisfy RXTX dependency and compile the emu 
+
+		Non-Android:
+			Take a binary release of the jar and native lib from http://rxtx.qbang.org
+			Install the native lib (see rxtx documentation)
+			Copy RXTXcomm.jar to src/
+			Copy assets/default.ini to src/conaxe.ini
+			Compile (from src dir do javac -cp RXTXcomm.jar io/conaxe/*.java)
+			Jump ahead to step 1 and finish configuration.
+			Launch emu from the src dir (java -cp RXTXcomm.jar:. io.conaxe.Conaxe)
+			Optional: Package according to taste
+
+		Android: 
+			DL everything from https://github.com/vladistan/gnu.io.android
+
+			Copy gnu.io/src/* into the project's src dir
+
+			For best results you need to modify and recompile the ported native library
+        		I've provided a patch file in /lib 
+			You'll need the Android NDK.
+
+        		Steps:
+				copy jni.patch to librxtxSerial/ 
+				run patch -i -p0 jni.patch
+				build using ndk
+				copy resulting librxtxSerial.so into /lib
+				build source tree as android project (using IDE of choice)			
+
+			Start the emu once, it will drop the default config into 
+			/data/data/io.droidAxe/files
+			Continue with steps below.
+			If something goes wrong logcat is your friend.
+
+	1. Edit config. Fill in your card info (ATR, IDs, serials)
+		Hint: OSCAM can show you most of them, STB info menus may show you the rest.
+		Don't change the length of IDs and serials in the example config. 
+		Prepend with 00s instead if shorter
+		ATR length is arbitrary
+	2. Configure the reset according to your interface
+	3. Configure the port and speed (I have no idea if unstandard bauds are handled.
+	   I think RXTX may support them but I haven't tried.
+	   A simple no hassle solution for unstandard baud is to buy a CP2102 based interface 
+	   (less than $5 shipped) and use the manufacturer tool to modify the baud rate table.
+	   It works great, no headaches.)	   
+	4. Fill in your card server access details (emu has been tested with OSCAM only)
+	5. Deploy and run
