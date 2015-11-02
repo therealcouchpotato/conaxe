@@ -105,6 +105,6 @@ To use:
 	   I think RXTX may support them but I haven't tried.
 	   A simple no hassle solution for unstandard baud is to buy a CP2102 based interface 
 	   (less than $5 shipped) and use the manufacturer tool to modify the baud rate table.
-	   It works great, no headaches.)	   
+	   It works great, no headaches.) See the Wiki page on how to hook it up.
 	4. Fill in your card server access details (emu has been tested with OSCAM only)
 	5. Deploy and run
